@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sổ điểm học sinh</title>
+<style>
+  :root {
+    --paper: #FBF9F4;
+    --paper-line: #E4DFD1;
+    --ink: #21324A;
+    --ink-soft: #5B6B84;
+    --rule: #C9C2AC;
+    --accent: #2F6F6E;
+    --accent-soft: #E4EFEC;
+    --amber: #B9822F;
+    --amber-soft: #F5EBD8;
+    --pass: #3F7D5C;
+    --pass-soft: #E4F1E8;
+    --fail: #AF4B36;
+    --fail-soft: #F7E7E1;
+    --shadow: rgba(33, 50, 74, 0.08);
+    --row-alt: #F3EFE4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #14181F;
+      --paper-line: #262C38;
+      --ink: #E9EBF1;
+      --ink-soft: #97A1B5;
+      --rule: #333B4A;
+      --accent: #6FBFB8;
+      --accent-soft: #1C2C2C;
+      --amber: #E0AE66;
+      --amber-soft: #2C2416;
+      --pass: #7BC79A;
+      --pass-soft: #17281E;
+      --fail: #E08268;
+      --fail-soft: #2C1B17;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --row-alt: #191E27;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #14181F;
+    --paper-line: #262C38;
+    --ink: #E9EBF1;
+    --ink-soft: #97A1B5;
+    --rule: #333B4A;
+    --accent: #6FBFB8;
+    --accent-soft: #1C2C2C;
+    --amber: #E0AE66;
+    --amber-soft: #2C2416;
+    --pass: #7BC79A;
+    --pass-soft: #17281E;
+    --fail: #E08268;
+    --fail-soft: #2C1B17;
+    --shadow: rgba(0, 0, 0, 0.35);
+    --row-alt: #191E27;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  body {
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Noto Serif", serif;
+    line-height: 1.5;
+    padding: 28px 20px 80px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+
+  header.top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 14px;
+    margin-bottom: 22px;
+  }
+  header.top h1 {
+    font-size: 1.7rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+  header.top .sub {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+  }
+  .status-dot {
+    display: inline-block;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .panel {
+    background: var(--paper);
+    border: 1px solid var(--paper-line);
+    border-radius: 6px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .panel h2 {
+    font-family: inherit;
+    font-size: 0.72rem;
+    text-transform: none;
+    letter-spacing: 0.3px;
+    color: var(--ink-soft);
+    margin: 0 0 12px 0;
+    font-weight: 600;
+  }
+  .settings-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px;
+    align-items: flex-end;
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 160px; }
+  .field label { font-size: 0.78rem; color: var(--ink-soft); }
+  .field .value-line {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .field .value-line strong { font-size: 0.95rem; min-width: 44px; }
+  input[type="range"] {
+    accent-color: var(--accent);
+    width: 150px;
+  }
+  input[type="number"].threshold-input {
+    width: 64px;
+    padding: 4px 6px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .hint-text {
+    font-size: 0.8rem;
+    color: var(--ink-soft);
+  }
+  .hint-text.error { color: var(--fail); }
+  button {
+    font-family: inherit;
+    font-size: 0.85rem;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    padding: 8px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+  button:hover { opacity: 0.82; }
+  button.secondary {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--rule);
+  }
+  button.danger {
+    background: transparent;
+    color: var(--fail);
+    border-color: var(--fail);
+  }
+  button:disabled { opacity: 0.4; cursor: default; }
+
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--paper-line);
+    border-radius: 6px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 640px;
+    font-size: 0.92rem;
+  }
+  thead th {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    font-weight: 600;
+    text-align: center;
+    padding: 10px 8px;
+    border-bottom: 2px solid var(--ink);
+    white-space: nowrap;
+    position: relative;
+  }
+  thead th.name-col { text-align: left; padding-left: 14px; }
+  thead th .week-del {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  thead th .week-del:hover { color: var(--fail); }
+  thead th .week-edit { display: block; font-size: 0.65rem; color: var(--ink-soft); cursor: pointer; margin-top: 2px; font-weight: 400; }
+  thead th .week-edit:hover { color: var(--accent); }
+
+  tbody td {
+    padding: 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--paper-line);
+    vertical-align: middle;
+  }
+  tbody tr:nth-child(even) { background: var(--row-alt); }
+  td.name-col {
+    text-align: left;
+    padding-left: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  td.name-col .del-student {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  td.name-col .del-student:hover { color: var(--fail); }
+  td.name-col .del-student.confirming { color: var(--fail); font-weight: 600; }
+  td.name-col .edit-student {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.68rem;
+    font-weight: 400;
+    color: var(--ink-soft);
+    cursor: pointer;
+    margin-left: 8px;
+  }
+  td.name-col .edit-student:hover { color: var(--accent); }
+  .inline-edit-input {
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 4px 6px;
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ink);
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  input.score-input {
+    width: 48px;
+    text-align: center;
+    padding: 5px 3px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.88rem;
+  }
+  input.score-input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  td.avg-col { color: var(--ink-soft); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  td.final-col strong {
+    font-size: 1.02rem;
+  }
+  .badge {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .badge.pass { background: var(--pass-soft); color: var(--pass); }
+  .badge.fail { background: var(--fail-soft); color: var(--fail); }
+  .badge.pending { background: var(--amber-soft); color: var(--amber); }
+
+  .add-student-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .add-student-row input[type="text"] {
+    flex: 1;
+    max-width: 260px;
+    padding: 8px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .summary-strip {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .summary-strip .stat { display: flex; flex-direction: column; }
+  .summary-strip .stat .num { font-size: 1.4rem; font-weight: 700; font-family: inherit; }
+  .summary-strip .stat .label { font-size: 0.75rem; color: var(--ink-soft); }
+  .summary-strip .stat.pass .num { color: var(--pass); }
+  .summary-strip .stat.fail .num { color: var(--fail); }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--ink-soft);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.9rem;
+  }
+
+  .login-panel {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .login-panel .field input {
+    padding: 8px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    width: 170px;
+  }
+  .login-panel .hint-text { flex-basis: 100%; }
+  .login-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .login-status-row .who { font-size: 0.88rem; }
+  .login-status-row .who strong { color: var(--accent); }
+  .readonly-note {
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    margin-top: 6px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .account-list {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .account-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.85rem;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--paper-line);
+  }
+  .account-row .del-account {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .account-row .del-account:hover { color: var(--fail); }
+  .account-row .del-account.confirming { color: var(--fail); font-weight: 600; }
+  details.manage-accounts { margin-top: 14px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  details.manage-accounts summary {
+    cursor: pointer;
+    font-size: 0.82rem;
+    color: var(--accent);
+  }
+  input:disabled, button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  @media (max-width: 640px) {
+    header.top h1 { font-size: 1.35rem; }
+    .settings-row { gap: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Sổ điểm học sinh</h1>
+      <div class="sub"><span class="status-dot" id="statusDot"></span><span id="statusText">Đang kết nối…</span></div>
+    </div>
+  </header>
+
+  <div class="panel" id="loginPanel">
+    <h2>Đăng nhập để chỉnh sửa</h2>
+    <div id="loginPanelBody"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Cách tính điểm</h2>
+    <div class="settings-row">
+      <div class="field">
+        <label>Trọng số điểm trung bình các tuần / điểm thi cuối kỳ</label>
+        <div class="value-line">
+          <input type="range" id="weightSlider" min="0" max="100" step="5" value="50" />
+          <strong id="weightLabel">50% / 50%</strong>
+        </div>
+      </div>
+      <div class="field">
+        <label>Ngưỡng đạt (thang 10)</label>
+        <div class="value-line">
+          <input type="number" class="threshold-input" id="thresholdInput" min="0" max="10" step="0.1" value="5" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <button id="addWeekBtn">+ Thêm tuần</button>
+    <span id="addWeekStatus" class="hint-text"></span>
+  </div>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr id="headRow">
+          <th class="name-col">Học sinh</th>
+          <!-- week columns injected -->
+          <th>Thi cuối kỳ</th>
+          <th>TB tuần</th>
+          <th>Điểm cuối khóa</th>
+          <th>Kết quả</th>
+        </tr>
+      </thead>
+      <tbody id="bodyRows">
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" id="emptyState" style="display:none;">Chưa có học sinh nào — thêm học sinh đầu tiên bên dưới.</div>
+
+  <div class="add-student-row">
+    <input type="text" id="newStudentName" placeholder="Tên học sinh mới" />
+    <button id="addStudentBtn">+ Thêm học sinh</button>
+  </div>
+
+  <div class="summary-strip" id="summaryStrip"></div>
+</div>
+
+<script>
+(function () {
+  let db = null;
+  let unsub1 = null, unsub2 = null;
+  let settings = { weight: 50, threshold: 5, weeks: [], accounts: [] };
+  let students = {}; // id -> {name, weekly: {weekId: score}, finalExam: score}
+  let localMode = false;
+  let currentUser = null; // username string, or null if not logged in
+  let pendingDeleteAccount = null;
+  let pendingDeleteAccountTimeout = null;
+
+  const statusDot = document.getElementById('statusDot');
+  const statusText = document.getElementById('statusText');
+  const headRow = document.getElementById('headRow');
+  const bodyRows = document.getElementById('bodyRows');
+  const emptyState = document.getElementById('emptyState');
+  const weightSlider = document.getElementById('weightSlider');
+  const weightLabel = document.getElementById('weightLabel');
+  const thresholdInput = document.getElementById('thresholdInput');
+  const summaryStrip = document.getElementById('summaryStrip');
+  const loginPanelBody = document.getElementById('loginPanelBody');
+
+  try {
+    currentUser = sessionStorage.getItem('gradebook_current_user') || null;
+  } catch (e) { currentUser = null; }
+
+  function uid() {
+    return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  }
+
+  // Data returned by the db capability (doc.data()) is frozen — mutating
+  // it in place throws ("object is not extensible"). Always clone before
+  // storing it in our local, editable state.
+  function deepClone(obj) {
+    if (obj === null || obj === undefined) return obj;
+    if (typeof structuredClone === 'function') {
+      try { return structuredClone(obj); } catch (e) {}
+    }
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  function round1(n) {
+    return Math.round(n * 10) / 10;
+  }
+
+  function computeStudent(s) {
+    const weekIds = settings.weeks.map(w => w.id);
+    const enteredScores = weekIds
+      .map(id => s.weekly && s.weekly[id])
+      .filter(v => v !== undefined && v !== null && v !== '' && !isNaN(v))
+      .map(Number);
+    const weeklyAvg = enteredScores.length
+      ? enteredScores.reduce((a, b) => a + b, 0) / enteredScores.length
+      : null;
+    const finalExam = (s.finalExam !== undefined && s.finalExam !== null && s.finalExam !== '' && !isNaN(s.finalExam))
+      ? Number(s.finalExam) : null;
+
+    let finalScore = null;
+    if (weeklyAvg !== null && finalExam !== null) {
+      finalScore = weeklyAvg * (settings.weight / 100) + finalExam * (1 - settings.weight / 100);
+    } else if (weeklyAvg !== null) {
+      // Only weekly scores entered so far (e.g. no final exam score yet, or no final exam column in use)
+      finalScore = weeklyAvg;
+    } else if (finalExam !== null) {
+      // Only the final exam score entered so far (e.g. no weeks added yet)
+      finalScore = finalExam;
+    }
+
+    return { weeklyAvg, finalExam, finalScore };
+  }
+
+  function cssEscapeAttr(v) {
+    return String(v).replace(/["\\]/g, '\\$&');
+  }
+
+  function isLoggedIn() {
+    return !!(currentUser && settings.accounts && settings.accounts.some(a => a.username === currentUser));
+  }
+
+  function setLoggedInUser(username) {
+    currentUser = username;
+    try {
+      if (username) sessionStorage.setItem('gradebook_current_user', username);
+      else sessionStorage.removeItem('gradebook_current_user');
+    } catch (e) {}
+  }
+
+  function renderLoginPanel() {
+    const accounts = settings.accounts || [];
+
+    if (isLoggedIn()) {
+      loginPanelBody.innerHTML = '';
+      const row = document.createElement('div');
+      row.className = 'login-status-row';
+      row.innerHTML = '<span class="who">Đang đăng nhập: <strong>' + escapeHtml(currentUser) + '</strong></span>';
+      const logoutBtn = document.createElement('button');
+      logoutBtn.className = 'secondary';
+      logoutBtn.textContent = 'Đăng xuất';
+      logoutBtn.addEventListener('click', () => {
+        setLoggedInUser(null);
+        renderLoginPanel();
+        render();
+      });
+      row.appendChild(logoutBtn);
+      loginPanelBody.appendChild(row);
+
+      const details = document.createElement('details');
+      details.className = 'manage-accounts';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Quản lý tài khoản (' + accounts.length + ')';
+      details.appendChild(summary);
+
+      const list = document.createElement('div');
+      list.className = 'account-list';
+      accounts.forEach(acc => {
+        const r = document.createElement('div');
+        r.className = 'account-row';
+        const canDeleteSelf = accounts.length > 1 || acc.username !== currentUser;
+        r.innerHTML = '<span>' + escapeHtml(acc.username) + '</span>' +
+          (canDeleteSelf ? '<span class="del-account" data-account="' + escapeHtml(acc.username) + '">xoá</span>' : '');
+        list.appendChild(r);
+      });
+      details.appendChild(list);
+
+      const addRow = document.createElement('div');
+      addRow.className = 'login-panel';
+      addRow.style.marginTop = '10px';
+      addRow.innerHTML =
+        '<div class="field"><label>Tên đăng nhập mới</label><input type="text" id="newAccUser" /></div>' +
+        '<div class="field"><label>Mật khẩu</label><input type="password" id="newAccPass" /></div>' +
+        '<button id="addAccountBtn">+ Thêm tài khoản</button>' +
+        '<span class="hint-text" id="addAccountStatus"></span>';
+      details.appendChild(addRow);
+
+      loginPanelBody.appendChild(details);
+
+      list.querySelectorAll('.del-account').forEach(el => {
+        el.addEventListener('click', () => {
+          const uname = el.dataset.account;
+          if (pendingDeleteAccount === uname) {
+            clearTimeout(pendingDeleteAccountTimeout);
+            pendingDeleteAccount = null;
+            settings.accounts = settings.accounts.filter(a => a.username !== uname);
+            if (currentUser === uname) setLoggedInUser(null);
+            saveSettings();
+            renderLoginPanel();
+            render();
+            return;
+          }
+          pendingDeleteAccount = uname;
+          el.textContent = 'bấm lần nữa để xoá';
+          el.classList.add('confirming');
+          clearTimeout(pendingDeleteAccountTimeout);
+          pendingDeleteAccountTimeout = setTimeout(() => {
+            pendingDeleteAccount = null;
+            if (el.isConnected) { el.textContent = 'xoá'; el.classList.remove('confirming'); }
+          }, 3000);
+        });
+      });
+
+      document.getElementById('addAccountBtn').addEventListener('click', async () => {
+        const uInput = document.getElementById('newAccUser');
+        const pInput = document.getElementById('newAccPass');
+        const statusEl = document.getElementById('addAccountStatus');
+        const username = uInput.value.trim();
+        const password = pInput.value;
+        if (!username || !password) {
+          statusEl.textContent = 'Nhập đủ tên đăng nhập và mật khẩu.';
+          statusEl.classList.add('error');
+          return;
+        }
+        if ((settings.accounts || []).some(a => a.username === username)) {
+          statusEl.textContent = 'Tên đăng nhập đã tồn tại.';
+          statusEl.classList.add('error');
+          return;
+        }
+        statusEl.classList.remove('error');
+        statusEl.textContent = 'Đang lưu…';
+        try {
+          settings.accounts = (settings.accounts || []).concat([{ username, password }]);
+          await saveSettings();
+          uInput.value = '';
+          pInput.value = '';
+          renderLoginPanel();
+        } catch (err) {
+          statusEl.textContent = 'Lỗi: ' + (err && err.message ? err.message : String(err));
+          statusEl.classList.add('error');
+        }
+      });
+      return;
+    }
+
+    // Not logged in
+    if (accounts.length === 0) {
+      loginPanelBody.innerHTML =
+        '<p class="readonly-note" style="margin:0 0 10px 0;">Chưa có tài khoản nào — mọi người đang xem và chỉnh sửa tự do. Tạo tài khoản đầu tiên để bắt đầu yêu cầu đăng nhập khi chỉnh sửa.</p>' +
+        '<div class="login-panel">' +
+        '<div class="field"><label>Tên đăng nhập</label><input type="text" id="firstAccUser" /></div>' +
+        '<div class="field"><label>Mật khẩu</label><input type="password" id="firstAccPass" /></div>' +
+        '<button id="firstAccBtn">Tạo tài khoản đầu tiên</button>' +
+        '<span class="hint-text" id="firstAccStatus"></span>' +
+        '</div>';
+      document.getElementById('firstAccBtn').addEventListener('click', async () => {
+        const uInput = document.getElementById('firstAccUser');
+        const pInput = document.getElementById('firstAccPass');
+        const statusEl = document.getElementById('firstAccStatus');
+        const username = uInput.value.trim();
+        const password = pInput.value;
+        if (!username || !password) {
+          statusEl.textContent = 'Nhập đủ tên đăng nhập và mật khẩu.';
+          statusEl.classList.add('error');
+          return;
+        }
+        statusEl.classList.remove('error');
+        statusEl.textContent = 'Đang lưu…';
+        try {
+          settings.accounts = [{ username, password }];
+          await saveSettings();
+          setLoggedInUser(username);
+          renderLoginPanel();
+          render();
+        } catch (err) {
+          statusEl.textContent = 'Lỗi: ' + (err && err.message ? err.message : String(err));
+          statusEl.classList.add('error');
+        }
+      });
+      return;
+    }
+
+    loginPanelBody.innerHTML =
+      '<div class="login-panel">' +
+      '<div class="field"><label>Tên đăng nhập</label><input type="text" id="loginUser" /></div>' +
+      '<div class="field"><label>Mật khẩu</label><input type="password" id="loginPass" /></div>' +
+      '<button id="loginBtn">Đăng nhập</button>' +
+      '<span class="hint-text" id="loginStatus"></span>' +
+      '</div>' +
+      '<p class="readonly-note">Chưa đăng nhập — bạn đang ở chế độ chỉ xem.</p>';
+
+    const doLogin = () => {
+      const uInput = document.getElementById('loginUser');
+      const pInput = document.getElementById('loginPass');
+      const statusEl = document.getElementById('loginStatus');
+      const username = uInput.value.trim();
+      const password = pInput.value;
+      const match = (settings.accounts || []).find(a => a.username === username && a.password === password);
+      if (!match) {
+        statusEl.textContent = 'Sai tên đăng nhập hoặc mật khẩu.';
+        statusEl.classList.add('error');
+        return;
+      }
+      setLoggedInUser(username);
+      renderLoginPanel();
+      render();
+    };
+    document.getElementById('loginBtn').addEventListener('click', doLogin);
+    document.getElementById('loginPass').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+  }
+
+  function render() {
+    renderLoginPanel();
+    const editable = isLoggedIn();
+
+    // Capture the currently focused score input (if any) so a re-render
+    // triggered mid-edit (e.g. by a sync update) doesn't wipe out what
+    // the person is in the middle of typing or clearing.
+    const active = document.activeElement;
+    let focusInfo = null;
+    if (active && active.classList && active.classList.contains('score-input')) {
+      focusInfo = {
+        student: active.dataset.student,
+        week: active.dataset.week || '',
+        value: active.value,
+        selStart: active.selectionStart,
+        selEnd: active.selectionEnd,
+      };
+    }
+
+    // header weeks
+    headRow.querySelectorAll('.week-th').forEach(el => el.remove());
+    const finalExamTh = headRow.children[headRow.children.length - 4];
+    settings.weeks.forEach(w => {
+      const th = document.createElement('th');
+      th.className = 'week-th';
+      th.innerHTML = escapeHtml(w.label) + (editable ? '<span class="week-edit" data-week="' + w.id + '">sửa</span><span class="week-del" data-week="' + w.id + '">xoá</span>' : '');
+      headRow.insertBefore(th, finalExamTh);
+    });
+
+    weightSlider.value = settings.weight;
+    weightSlider.disabled = !editable;
+    weightLabel.textContent = settings.weight + '% / ' + (100 - settings.weight) + '%';
+    thresholdInput.value = settings.threshold;
+    thresholdInput.disabled = !editable;
+    addWeekBtn.disabled = !editable || addWeekBusy;
+    document.getElementById('newStudentName').disabled = !editable;
+    document.getElementById('addStudentBtn').disabled = !editable;
+
+    // body
+    bodyRows.innerHTML = '';
+    const ids = Object.keys(students).sort((a, b) => (students[a].order || 0) - (students[b].order || 0));
+    emptyState.style.display = ids.length === 0 ? 'block' : 'none';
+
+    let passCount = 0, failCount = 0, pendingCount = 0;
+
+    ids.forEach(id => {
+      const s = students[id];
+      const { weeklyAvg, finalExam, finalScore } = computeStudent(s);
+      const tr = document.createElement('tr');
+
+      const nameTd = document.createElement('td');
+      nameTd.className = 'name-col';
+      nameTd.innerHTML = escapeHtml(s.name) + (editable ? '<span class="edit-student" data-student="' + id + '">sửa</span><span class="del-student" data-student="' + id + '">xoá</span>' : '');
+      tr.appendChild(nameTd);
+
+      settings.weeks.forEach(w => {
+        const td = document.createElement('td');
+        const inp = document.createElement('input');
+        inp.type = 'number';
+        inp.className = 'score-input';
+        inp.min = '0'; inp.max = '10'; inp.step = '0.1';
+        inp.value = (s.weekly && s.weekly[w.id] !== undefined && s.weekly[w.id] !== null) ? s.weekly[w.id] : '';
+        inp.placeholder = '-';
+        inp.disabled = !editable;
+        inp.dataset.student = id;
+        inp.dataset.week = w.id;
+        inp.addEventListener('change', onWeeklyScoreChange);
+        td.appendChild(inp);
+        tr.appendChild(td);
+      });
+
+      const finalTd = document.createElement('td');
+      const finalInp = document.createElement('input');
+      finalInp.type = 'number';
+      finalInp.className = 'score-input';
+      finalInp.min = '0'; finalInp.max = '10'; finalInp.step = '0.1';
+      finalInp.value = (s.finalExam !== undefined && s.finalExam !== null) ? s.finalExam : '';
+      finalInp.placeholder = '-';
+      finalInp.disabled = !editable;
+      finalInp.dataset.student = id;
+      finalInp.addEventListener('change', onFinalExamChange);
+      finalTd.appendChild(finalInp);
+      tr.appendChild(finalTd);
+
+      const avgTd = document.createElement('td');
+      avgTd.className = 'avg-col';
+      avgTd.textContent = weeklyAvg !== null ? round1(weeklyAvg).toFixed(1) : '–';
+      tr.appendChild(avgTd);
+
+      const scoreTd = document.createElement('td');
+      scoreTd.className = 'final-col';
+      scoreTd.innerHTML = finalScore !== null ? '<strong>' + round1(finalScore).toFixed(1) + '</strong>' : '–';
+      tr.appendChild(scoreTd);
+
+      const resultTd = document.createElement('td');
+      if (finalScore === null) {
+        resultTd.innerHTML = '<span class="badge pending">chưa có điểm</span>';
+        pendingCount++;
+      } else if (finalScore >= settings.threshold) {
+        resultTd.innerHTML = '<span class="badge pass">Đạt</span>';
+        passCount++;
+      } else {
+        resultTd.innerHTML = '<span class="badge fail">Chưa đạt</span>';
+        failCount++;
+      }
+      tr.appendChild(resultTd);
+
+      bodyRows.appendChild(tr);
+    });
+
+    summaryStrip.innerHTML = '';
+    if (ids.length > 0) {
+      summaryStrip.innerHTML =
+        '<div class="stat"><span class="num">' + ids.length + '</span><span class="label">Tổng số học sinh</span></div>' +
+        '<div class="stat pass"><span class="num">' + passCount + '</span><span class="label">Đạt</span></div>' +
+        '<div class="stat fail"><span class="num">' + failCount + '</span><span class="label">Chưa đạt</span></div>' +
+        (pendingCount ? '<div class="stat"><span class="num">' + pendingCount + '</span><span class="label">Chưa đủ điểm</span></div>' : '');
+    }
+
+    if (focusInfo) {
+      const sel = focusInfo.week
+        ? '.score-input[data-student="' + cssEscapeAttr(focusInfo.student) + '"][data-week="' + cssEscapeAttr(focusInfo.week) + '"]'
+        : '.score-input[data-student="' + cssEscapeAttr(focusInfo.student) + '"]:not([data-week])';
+      const newInput = bodyRows.querySelector(sel);
+      if (newInput) {
+        newInput.value = focusInfo.value;
+        newInput.focus();
+        if (typeof newInput.setSelectionRange === 'function') {
+          try { newInput.setSelectionRange(focusInfo.selStart, focusInfo.selEnd); } catch (e) {}
+        }
+      }
+    }
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str == null ? '' : String(str);
+    return d.innerHTML;
+  }
+
+  // ---- persistence ----
+  async function saveSettings() {
+    settings.updatedAt = Date.now();
+    if (db) {
+      await db.doc('settings/config').set(settings);
+      return;
+    }
+    localStorage.setItem('gradebook_settings_fallback', JSON.stringify(settings));
+  }
+
+  async function saveStudent(id, data) {
+    if (db) {
+      try { await db.doc('students/' + id).set(data); return; } catch (e) { console.error(e); }
+    }
+    localStorage.setItem('gradebook_students_fallback', JSON.stringify(students));
+  }
+
+  async function deleteStudentDoc(id) {
+    if (db) {
+      try { await db.doc('students/' + id).delete(); return; } catch (e) { console.error(e); }
+    }
+    delete students[id];
+    localStorage.setItem('gradebook_students_fallback', JSON.stringify(students));
+  }
+
+  function onWeeklyScoreChange(e) {
+    if (!isLoggedIn()) return;
+    const studentId = e.target.dataset.student;
+    const weekId = e.target.dataset.week;
+    const val = e.target.value === '' ? null : Number(e.target.value);
+    if (!students[studentId]) return;
+    if (!students[studentId].weekly) students[studentId].weekly = {};
+    students[studentId].weekly[weekId] = val;
+    saveStudent(studentId, students[studentId]);
+    render();
+  }
+
+  function onFinalExamChange(e) {
+    if (!isLoggedIn()) return;
+    const studentId = e.target.dataset.student;
+    const val = e.target.value === '' ? null : Number(e.target.value);
+    if (!students[studentId]) return;
+    students[studentId].finalExam = val;
+    saveStudent(studentId, students[studentId]);
+    render();
+  }
+
+  const addWeekBtn = document.getElementById('addWeekBtn');
+  const addWeekStatus = document.getElementById('addWeekStatus');
+  let addWeekBusy = false;
+
+  addWeekBtn.addEventListener('click', async () => {
+    if (addWeekBusy || !isLoggedIn()) return;
+    addWeekBusy = true;
+    addWeekBtn.disabled = true;
+    addWeekStatus.textContent = 'Đang thêm…';
+    addWeekStatus.classList.remove('error');
+    try {
+      const n = settings.weeks.length + 1;
+      const newWeek = { id: 'w_' + uid(), label: 'Tuần ' + n };
+      settings.weeks.push(newWeek);
+      render();
+      await saveSettings();
+      addWeekStatus.textContent = 'Đã thêm ' + newWeek.label + '.';
+      setTimeout(() => { if (addWeekStatus.textContent === 'Đã thêm ' + newWeek.label + '.') addWeekStatus.textContent = ''; }, 2500);
+    } catch (err) {
+      console.error(err);
+      addWeekStatus.textContent = 'Lỗi khi thêm tuần: ' + (err && (err.message || err.code) ? (err.message || err.code) : String(err));
+      addWeekStatus.classList.add('error');
+    } finally {
+      addWeekBusy = false;
+      addWeekBtn.disabled = false;
+    }
+  });
+
+  headRow.addEventListener('click', (e) => {
+    if (e.target.classList.contains('week-edit') && isLoggedIn()) {
+      const weekId = e.target.dataset.week;
+      const week = settings.weeks.find(w => w.id === weekId);
+      if (!week) return;
+      const th = e.target.closest('th');
+      th.innerHTML = '';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'inline-edit-input';
+      inp.value = week.label;
+      th.appendChild(inp);
+      inp.focus();
+      inp.select();
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        const val = inp.value.trim();
+        if (val && val !== week.label) {
+          week.label = val;
+          saveSettings();
+        }
+        render();
+      };
+      const cancel = () => {
+        if (done) return;
+        done = true;
+        render();
+      };
+      inp.addEventListener('blur', commit);
+      inp.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+      });
+      return;
+    }
+    if (e.target.classList.contains('week-del') && isLoggedIn()) {
+      const weekId = e.target.dataset.week;
+      settings.weeks = settings.weeks.filter(w => w.id !== weekId);
+      saveSettings();
+      Object.keys(students).forEach(id => {
+        if (students[id].weekly && students[id].weekly[weekId] !== undefined) {
+          delete students[id].weekly[weekId];
+          saveStudent(id, students[id]);
+        }
+      });
+      render();
+    }
+  });
+
+  let pendingDeleteId = null;
+  let pendingDeleteTimeout = null;
+
+  bodyRows.addEventListener('click', (e) => {
+    if (e.target.classList.contains('edit-student') && isLoggedIn()) {
+      const id = e.target.dataset.student;
+      const s = students[id];
+      if (!s) return;
+      const td = e.target.closest('td');
+      td.innerHTML = '';
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.className = 'inline-edit-input';
+      inp.value = s.name;
+      td.appendChild(inp);
+      inp.focus();
+      inp.select();
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        const val = inp.value.trim();
+        if (val && val !== s.name) {
+          s.name = val;
+          saveStudent(id, s);
+        }
+        render();
+      };
+      const cancel = () => {
+        if (done) return;
+        done = true;
+        render();
+      };
+      inp.addEventListener('blur', commit);
+      inp.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); inp.blur(); }
+        else if (ev.key === 'Escape') { ev.preventDefault(); cancel(); }
+      });
+      return;
+    }
+    if (e.target.classList.contains('del-student') && isLoggedIn()) {
+      const id = e.target.dataset.student;
+      if (pendingDeleteId === id) {
+        clearTimeout(pendingDeleteTimeout);
+        pendingDeleteId = null;
+        deleteStudentDoc(id);
+        delete students[id];
+        render();
+        return;
+      }
+      pendingDeleteId = id;
+      e.target.textContent = 'bấm lần nữa để xoá';
+      e.target.classList.add('confirming');
+      clearTimeout(pendingDeleteTimeout);
+      pendingDeleteTimeout = setTimeout(() => {
+        pendingDeleteId = null;
+        if (e.target.isConnected) {
+          e.target.textContent = 'xoá';
+          e.target.classList.remove('confirming');
+        }
+      }, 3000);
+    }
+  });
+
+  document.getElementById('addStudentBtn').addEventListener('click', addStudent);
+  document.getElementById('newStudentName').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addStudent();
+  });
+
+  function addStudent() {
+    if (!isLoggedIn()) return;
+    const input = document.getElementById('newStudentName');
+    const name = input.value.trim();
+    if (!name) return;
+    const id = uid();
+    const order = Object.keys(students).length;
+    students[id] = { name, weekly: {}, finalExam: null, order };
+    saveStudent(id, students[id]);
+    input.value = '';
+    render();
+  }
+
+  weightSlider.addEventListener('input', () => {
+    if (!isLoggedIn()) return;
+    settings.weight = Number(weightSlider.value);
+    weightLabel.textContent = settings.weight + '% / ' + (100 - settings.weight) + '%';
+    render();
+  });
+  weightSlider.addEventListener('change', () => { if (isLoggedIn()) saveSettings(); });
+
+  thresholdInput.addEventListener('change', () => {
+    if (!isLoggedIn()) return;
+    let v = Number(thresholdInput.value);
+    if (isNaN(v)) v = 5;
+    v = Math.max(0, Math.min(10, v));
+    settings.threshold = v;
+    saveSettings();
+    render();
+  });
+
+  // ---- init ----
+  async function init() {
+    try {
+      if (window.claude && typeof window.claude.use === 'function') {
+        db = await window.claude.use('db');
+      }
+    } catch (err) {
+      db = null;
+    }
+
+    if (!db) {
+      localMode = true;
+      statusDot.style.background = 'var(--amber)';
+      statusText.textContent = 'Chế độ ngoại tuyến — dữ liệu lưu trên máy này';
+      try {
+        const s = localStorage.getItem('gradebook_settings_fallback');
+        if (s) settings = JSON.parse(s);
+        const st = localStorage.getItem('gradebook_students_fallback');
+        if (st) students = JSON.parse(st);
+      } catch (e) {}
+      render();
+      return;
+    }
+
+    statusText.textContent = 'Đã kết nối — mọi thay đổi được lưu tự động';
+
+    try {
+      const settingsDoc = await db.doc('settings/config').get();
+      if (settingsDoc && settingsDoc.exists) {
+        settings = Object.assign({ weight: 50, threshold: 5, weeks: [], accounts: [], updatedAt: 0 }, deepClone(settingsDoc.data()));
+      } else {
+        await db.doc('settings/config').set(settings);
+      }
+    } catch (e) { console.error(e); }
+
+    db.doc('settings/config').onSnapshot((doc) => {
+      if (doc && doc.exists) {
+        const incoming = doc.data() || {};
+        // A subscription's first delivery can lag behind a change the person
+        // just made locally (and already saved). Ignore anything older than
+        // what we already have so it can't silently revert that change.
+        if ((incoming.updatedAt || 0) < (settings.updatedAt || 0)) return;
+        settings = Object.assign({ weight: 50, threshold: 5, weeks: [], accounts: [], updatedAt: 0 }, deepClone(incoming));
+        render();
+      }
+    });
+
+    db.collection('students').onSnapshot((snapshot) => {
+      const next = {};
+      snapshot.docs.forEach(d => {
+        if (d.exists) next[d.id] = deepClone(d.data());
+      });
+      students = next;
+      render();
+    });
+
+    render();
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
